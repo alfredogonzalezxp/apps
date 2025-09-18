@@ -63,10 +63,13 @@ async function handleTaskSave(task) {
   isModalOpen.value = false;
 }
 
+function handleTasksUpdate(newTasks) {
+  allTasks.value = newTasks;
+}
+
 async function handleTaskMoved() {
   // La lógica de movimiento ya se hace en el backend a través de vuedraggable
-  // Solo necesitamos recargar los datos para asegurar consistencia.
-  await loadData();
+  // y el estado local se actualiza a través de v-model. No es necesario recargar.
 }
 
 onMounted(loadData);
@@ -81,8 +84,10 @@ onMounted(loadData);
       @create-task="openCreateModal"
     />
     <TaskBoard
-      :tasks="filteredTasks"
+      :tasks="allTasks"
       :columns="columns"
+      :filters="filters"
+      @update:tasks="handleTasksUpdate"
       @edit-task="openEditModal"
       @task-moved="handleTaskMoved"
     />

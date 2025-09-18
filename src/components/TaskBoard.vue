@@ -1,5 +1,5 @@
 <script setup lang="js">
-import { computed } from 'vue';
+import { computed, toRefs } from 'vue';
 import draggable from 'vuedraggable';
 import BoardColumn from './BoardColumn.vue';
 import TaskCard from './TaskCard.vue'; 
@@ -8,39 +8,67 @@ import { taskService } from './services/taskService.js';
 const props = defineProps({
   tasks: Array,
   columns: Array,
+  filters: {
+    type: Object,
+    default: () => ({ text: '', tags: [], priority: '' })
+  }
 });
 
 const emit = defineEmits(['update:tasks', 'edit-task', 'task-moved']);
 
-const tasksByColumn = computed(() => {
-  const grouped = {};
-  props.columns.forEach(col => {
-    // Inicializa cada columna con un array vacío
-    grouped[col.id] = [];
+const filteredTasks = computed(() => {
+  return props.tasks.filter(task => {
+    const textMatch = task.title.toLowerCase().includes(props.filters.text.toLowerCase()) ||
+                      (task.description && task.description.toLowerCase().includes(props.filters.text.toLowerCase()));
+    const tagsMatch = props.filters.tags.length === 0 || props.filters.tags.every(tag => task.tags.includes(tag));
+    const priorityMatch = !props.filters.priority || task.priority === props.filters.priority;
+    return textMatch && tagsMatch && priorityMatch;
   });
-  props.tasks.forEach(task => {
-    if (grouped[task.column]) {
-      grouped[task.column].push(task);
-    }
-  });
-  return grouped;
 });
 
+const tasksByColumn = computed({
+  get() {
+    const grouped = {};
+    props.columns.forEach(col => {
+      grouped[col.id] = [];
+    });
+    filteredTasks.value.forEach(task => {
+      if (grouped[task.column]) {
+        grouped[task.column].push(task);
+      }
+    });
+    return grouped;
+  }
+})
+
 async function onDragEnd(event) {
-  const { to, item } = event;
-  const taskId = item.dataset.taskId;
-  const newColumnId = to.parentElement.dataset.columnId;
+  const { item, to, from, oldIndex, newIndex } = event;
+  const taskId = Number(item.dataset.taskId);
+  const toColumnId = to.closest('[data-column-id]').dataset.columnId;
+
+  // 1. Encontrar la tarea en la lista completa de props
+  const taskIndex = props.tasks.findIndex(t => t.id === taskId);
+  if (taskIndex === -1) return;
+
+  // 2. Crear una copia mutable de la lista de tareas
+  const newTasks = [...props.tasks];
+  const taskToMove = newTasks[taskIndex];
+
+  // 3. Actualizar la columna de la tarea movida
+  taskToMove.column = toColumnId;
   
-  if (taskId && newColumnId) {
-    await taskService.updateTaskColumn(Number(taskId), newColumnId);
-    
-    const task = props.tasks.find(t => t.id === Number(taskId));
-    if (task) {
-      task.column = newColumnId;
-      emit('task-moved');
-    }
+  // 4. Emitir la lista actualizada para que el padre actualice su estado
+  emit('update:tasks', newTasks);
+
+  // 5. Persistir el cambio en el backend (esto se puede hacer en paralelo)
+  if (taskId && toColumnId) {
+    await taskService.updateTaskColumn(taskId, toColumnId);
+    emit('task-moved');
   }
 }
+
+
+
 </script>
 
 <template>
@@ -52,7 +80,7 @@ async function onDragEnd(event) {
       :data-column-id="column.id"
     >
       <draggable
-        v-model="tasksByColumn[column.id]"
+        :list="tasksByColumn[column.id]"
         group="tasks"
         item-key="id"
         class="column-draggable"
