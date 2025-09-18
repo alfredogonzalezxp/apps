@@ -1,0 +1,97 @@
+// Variables
+$card-bg: #ffffff;
+$card-shadow: rgba(0, 0, 0, 0.1);
+$border-radius: 8px;
+$priority-high: #ff4d4f;
+$priority-medium: #faad14;
+$priority-low: #52c41a;
+
+// Mixin para el borde de prioridad
+@mixin priority-border($color) {
+  border-left: 5px solid $color;
+}
+
+.task-card {
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px $card-shadow;
+  cursor: grab;
+  transition: box-shadow 0.2s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #42b883;
+    outline-offset: 2px;
+  }
+
+  // Reglas anidadas para prioridad
+  &.priority--alta {
+    @include priority-border($priority-high);
+    .task-card__priority {
+      background-color: $priority-high;
+    }
+  }
+  &.priority--media {
+    @include priority-border($priority-medium);
+    .task-card__priority {
+      background-color: $priority-medium;
+    }
+  }
+  &.priority--baja {
+    @include priority-border($priority-low);
+    .task-card__priority {
+      background-color: $priority-low;
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  &__title {
+    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  &__priority {
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
+
+  &__body {
+    p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+  }
+
+  &__footer {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
