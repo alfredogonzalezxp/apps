@@ -37,12 +37,15 @@ app.post('/api/login', (req, res) => {
   if (!username) {
     return res.status(400).json({ message: 'Username is required' });
   }
-  // Simulación: creamos el usuario si el nombre es válido
-  const user = {
-    name: username,
-    avatar: `https://api.dicebear.com/8.x/initials/svg?seed=${username}`
-  };
-  res.json({ user });
+
+  // Buscamos el usuario en nuestra base de datos simulada
+  const user = db.users.find(u => u.name.toLowerCase() === username.toLowerCase());
+
+  if (user) {
+    res.json({ user });
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
 });
 
 // [GET] /api/board - Devuelve todos los datos del tablero

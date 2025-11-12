@@ -23,7 +23,7 @@ const taskToEdit = ref(null);
 const filteredTasks = computed(() => {
   return allTasks.value.filter(task => {
     const textMatch = task.title.toLowerCase().includes(filters.value.text.toLowerCase()) ||
-                      (task.description && task.description.toLowerCase().includes(filters.value.text.toLowerCase()));
+''                      (task.description && task.description.toLowerCase().includes(filters.value.text.toLowerCase()));
     const tagsMatch = filters.value.tags.length === 0 || filters.value.tags.every(tag => task.tags.includes(tag));
     const priorityMatch = !filters.value.priority || task.priority === filters.value.priority;
     return textMatch && tagsMatch && priorityMatch;
@@ -54,11 +54,7 @@ function openEditModal(task) {
 }
 
 async function handleTaskSave(task) {
-  if (task.id) {
-    await taskService.updateTask(task);
-  } else {
-    await taskService.createTask(task);
-  }
+  await taskService.saveTask(task);
   await loadData(); // Recargar datos
   isModalOpen.value = false;
 }

@@ -8,8 +8,13 @@ const error = ref('');
 
 async function handleLogin() {
   if (username.value.trim()) {
-    await login(username.value);
-    error.value = '';
+    try {
+      await login(username.value);
+      error.value = ''; // Limpiar errores si el login es exitoso
+    } catch (e) {
+      // Capturar el error de useAuth/API y mostrarlo
+      error.value = e.message === 'User not found' ? 'El usuario no existe. Intenta con "Ana", "Luis" o "Sara".' : 'Ocurrió un error inesperado.';
+    }
   } else {
     error.value = 'Por favor, introduce un nombre de usuario.';
   }

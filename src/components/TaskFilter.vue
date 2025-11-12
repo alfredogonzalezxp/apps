@@ -14,7 +14,7 @@ function updateFilter(key, value) {
 
 <template>
   <div class="p-4 bg-white rounded-lg shadow-md mb-4 flex flex-wrap items-center gap-4">
-    <div class="flex-grow min-w-[200px]">
+    <div class="grow min-w-[200px]">
       <input
         type="text"
         :value="filters.text"
@@ -24,7 +24,7 @@ function updateFilter(key, value) {
         aria-label="Search tasks"
       />
     </div>
-    <div class="flex-grow min-w-[150px]">
+    <div class="grow min-w-[150px]">
       <select
         :value="filters.priority"
         @change="updateFilter('priority', $event.target.value)"
@@ -35,7 +35,7 @@ function updateFilter(key, value) {
         <option v-for="p in priorities" :key="p" :value="p">{{ p }}</option>
       </select>
     </div>
-    <div class="flex-grow min-w-[150px]">
+    <div class="grow min-w-[150px]">
        <!-- Un select múltiple sería mejor, pero para simplificar usamos uno simple -->
       <select
         :value="filters.tags.length ? filters.tags[0] : ''"

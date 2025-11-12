@@ -1,40 +1,34 @@
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+// Usaremos la API simulada para que no necesites el backend
+import * as api from '../../backend/mock-api';
 
-const user = ref(JSON.parse(localStorage.getItem('taskboard-user') || 'null'));
+// Estado global del usuario (fuera de la función `useAuth` para que sea un singleton)
+const user = ref(null);
 
 export function useAuth() {
+  const router = useRouter();
+  const error = ref(null);
   const isAuthenticated = computed(() => !!user.value);
 
   async function login(username) {
     try {
-      const response = await fetch('http://localhost:3001/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username }),
-      });
-      if (!response.ok) throw new Error('Login failed');
-      const data = await response.json();
-      user.value = data.user;
-      localStorage.setItem('taskboard-user', JSON.stringify(data.user));
-    } catch (error) {
-      console.error('Error during login:', error);
-      throw error; // Propagar el error para que LoginView.vue lo maneje
+      const response = await api.login(username);
+      user.value = response.user;
+      error.value = null;
+      // Redirigir al tablero principal después de un login exitoso
+      router.push('/');
+    } catch (e) {
+      error.value = e.message;
+      // Relanzamos el error para que la vista de Login pueda atraparlo
+      throw e;
     }
   }
 
   function logout() {
     user.value = null;
-    localStorage.removeItem('taskboard-user');
-    // Redirigir al login
-    window.location.pathname = '/login';
+    router.push('/login');
   }
 
-  return {
-    user,
-    isAuthenticated,
-    login,
-    logout,
-  };
+  return { user, isAuthenticated, login, logout, error };
 }
